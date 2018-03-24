@@ -26,7 +26,6 @@ public class KNN {
 		System.out.println("Please enter a k value: ");
 		Scanner scan = new Scanner(System.in);
 		k = scan.nextInt();
-		System.out.println(k);
 		// check k is not less than 1
 		if (k >= 1) {
 			knnAlgorithm();
@@ -40,14 +39,10 @@ public class KNN {
 		for (Instance a : testList) {
 			Comparator<Instance> comparator = new DistanceComparator();
 			PriorityQueue<Instance> queue = new PriorityQueue<Instance>(k, comparator);
-			int g = 0;
 			for (Instance b : trainList) {
 				b.setDist(getDistance(a, b));
 				queue.add(b);
-				g++;
 			}
-			System.out.println("iiiiii   " + g);
-			System.out.println("queue " + queue.size());
 			// check which classes the nearest neighbours fall into
 			int s = 0;
 			int ve = 0;
@@ -75,7 +70,6 @@ public class KNN {
 				a.setGuess("Iris-virginica");
 
 		}
-		System.out.println("Done");
 		return true;
 
 	}
@@ -97,7 +91,6 @@ public class KNN {
 
 		try {
 			Scanner sc = new Scanner(f);
-			int ggg = 0;
 			while (sc.hasNextDouble()) {
 				if (nextSl != 0)
 					sl = nextSl;
@@ -117,8 +110,6 @@ public class KNN {
 					nextSl = 0;
 				Instance i = new Instance(name, sl, sw, pl, pw);
 				list.add(i);
-				System.out.println(i.getName());
-				ggg++;
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
