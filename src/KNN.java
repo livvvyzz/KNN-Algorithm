@@ -28,7 +28,6 @@ public class KNN {
 	private double pwMin;
 
 	public KNN() {
-		// TODO Auto-generated method stub
 		File train = new File("iris-training.txt");
 		File test = new File("iris-test.txt");
 		trainList = makeList(train);
@@ -45,7 +44,7 @@ public class KNN {
 			if (k >= 1) {
 				knnAlgorithm();
 			}
-			test();
+			test(testList);
 		}
 		else if (c == 2){
 			KMean();
@@ -53,6 +52,10 @@ public class KNN {
 	
 	}
 
+	/**
+	 * Runs the KNN Algorithm - deciding on a class label for each data point based on its nearest neighbours
+	 * @return
+	 */
 	public boolean knnAlgorithm() {
 
 		for (Instance a : testList) {
@@ -138,6 +141,12 @@ public class KNN {
 		return list;
 	}
 
+	/**
+	 * Calculates euclidean distance
+	 * @param a
+	 * @param b
+	 * @return distance
+	 */
 	public double getDistance(Instance a, Instance b) {
 
 		double pwD = (Math.pow((a.getPW() - b.getPW()), 2)) / (Math.pow(pwRange, 2));
@@ -150,6 +159,10 @@ public class KNN {
 
 	}
 
+	/**
+	 * Sets the range for each different data classifier
+	 * @return true if ranges all set correctly
+	 */
 	public boolean setRange() {
 
 		slMax = 0;
@@ -192,9 +205,12 @@ public class KNN {
 			return false;
 	}
 
-	public void test() {
+	/**
+	 * tests the given arraylist for accuracy
+	 */
+	public void test(ArrayList<Instance> list) {
 		double pos = 0;
-		for (Instance i : testList) {
+		for (Instance i : list) {
 			if (i.getName().equals(i.getGuess()))
 				pos++;
 		}
@@ -211,6 +227,9 @@ public class KNN {
 	 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	 */
 
+	/**
+	 * implements the K-Mean cluster Algorithm
+	 */
 	public void KMean() {
 		// generate initial centers
 		Instance[] c1Array = new Instance[3];
@@ -233,6 +252,11 @@ public class KNN {
 		
 	}
 
+	/**
+	 * Assigns each given instance to a centroid based on which centroid its closest to
+	 * @param array 
+	 * 			array of centroids
+	 */
 	public void dataAssignmentPhase(Instance[] array) {
 		for (Instance a : trainList) {
 			Comparator<Instance> comparator = new DistanceComparator();
@@ -244,7 +268,13 @@ public class KNN {
 			a.setCentroid(queue.poll());
 		}
 	}
-
+	
+	/**
+	 * Updates the centroids based on the means of each data point assigned to the centroid
+	 * @param array
+	 * 			array of centroids
+	 * @return
+	 */
 	public Instance[] updateCentroidPhase(Instance[] array) {
 		ArrayList<Instance> cluster1 = new ArrayList<Instance>();
 		ArrayList<Instance> cluster2 = new ArrayList<Instance>();
@@ -278,6 +308,13 @@ public class KNN {
 
 	}
 
+	/**
+	 * Finds the mean of all the data points in the cluster
+	 * @param list
+	 * 			all the arrays in the cluster
+	 * @return
+	 * 			new centroid
+	 */
 	public Instance getClusterMean(ArrayList<Instance> list) {
 		double pw = 0;
 		double pl = 0;
@@ -302,6 +339,12 @@ public class KNN {
 		return c1;
 	}
 	
+	
+	/**
+	 * Tests the accuracy of the KMean algorithm
+	 * @param array
+	 * 			array of centroids
+	 */
 	public void testKMean(Instance[] array){
 		ArrayList<Instance> cluster1 = new ArrayList<Instance>();
 		ArrayList<Instance> cluster2 = new ArrayList<Instance>();
@@ -320,10 +363,14 @@ public class KNN {
 		setKMeanGuess(cluster2);
 		setKMeanGuess(cluster3);
 		
-		testKMeanName();
+		test(trainList);
 
 	}
 	
+	/**
+	 * Sets the name of each data point in the cluster
+	 * @param cluster
+	 */
 	public void setKMeanGuess(ArrayList<Instance> cluster){
 		String s = "Iris-setosa";
 		String vi = "Iris-virginica";
@@ -352,14 +399,5 @@ public class KNN {
 
 	}
 	
-	public void testKMeanName() {
-		double pos = 0;
-		for (Instance i : trainList) {
-			if (i.getName().equals(i.getGuess()))
-				pos++;
-		}
-		System.out.println("Num of correct " + pos);
-		System.out.println("percentage of correct " + pos / 75);
-	}
-
+	
 }
