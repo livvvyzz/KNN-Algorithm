@@ -4,37 +4,56 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Comparator;
 
 public class KNN {
-	private  ArrayList<Instance> trainList = new ArrayList<Instance>();
-	private  ArrayList<Instance> testList = new ArrayList<Instance>();
-	private  int k;
-	private  double pwRange;
-	private  double plRange;
-	private  double swRange;
-	private  double slRange;
+	private ArrayList<Instance> trainList;
+	private ArrayList<Instance> testList;
+	private int k;
+	private double pwRange;
+	private double plRange;
+	private double swRange;
+	private double slRange;
+	// -----------cluster method
+	private boolean stop = false;
+	private double slMax;
+	private double swMax;
+	private double plMax;
+	private double pwMax;
+	private double slMin;
+	private double swMin;
+	private double plMin;
+	private double pwMin;
 
 	public KNN() {
 		// TODO Auto-generated method stub
 		File train = new File("iris-training.txt");
 		File test = new File("iris-test.txt");
-		makeList(train, trainList);
-		makeList(test, testList);
-		// get k value
-		System.out.println("Please enter a k value: ");
+		trainList = makeList(train);
+		testList = makeList(test);
+		setRange();
+		System.out.println("Run KNN [press 1] or KMean Cluster[press 2] ?");
 		Scanner scan = new Scanner(System.in);
-		k = scan.nextInt();
-		// check k is not less than 1
-		if (k >= 1) {
-			knnAlgorithm();
+		int c = scan.nextInt();
+		if(c == 1) {
+			System.out.println("Please enter a k value: ");
+			scan = new Scanner(System.in);
+			k = scan.nextInt();
+			// check k is not less than 1
+			if (k >= 1) {
+				knnAlgorithm();
+			}
+			test();
 		}
-		test();
+		else if (c == 2){
+			KMean();
+		}
+	
 	}
 
-	public  boolean knnAlgorithm() {
-
+	public boolean knnAlgorithm() {
 
 		for (Instance a : testList) {
 			Comparator<Instance> comparator = new DistanceComparator();
@@ -47,9 +66,9 @@ public class KNN {
 			int s = 0;
 			int ve = 0;
 			int vi = 0;
-			
+
 			Instance[] temp = new Instance[5];
-			for(int i = 0; i < 5; i++){
+			for (int i = 0; i < 5; i++) {
 				temp[i] = queue.poll();
 			}
 			for (Instance i : temp) {
@@ -81,7 +100,8 @@ public class KNN {
 	 * @param list
 	 * @return
 	 */
-	public  boolean makeList(File f, ArrayList<Instance> list) {
+	public ArrayList<Instance> makeList(File f) {
+		ArrayList<Instance> list = new ArrayList<Instance>();
 		double pl;
 		double pw;
 		double sl;
@@ -115,32 +135,31 @@ public class KNN {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return true;
+		return list;
 	}
 
-	public  double getDistance(Instance a, Instance b) {
-		if (setRange()) {
-			double pwD = (Math.pow((a.getPW() - b.getPW()), 2)) / (Math.pow(pwRange,2));
-			double plD = (Math.pow((a.getPL() - b.getPL()), 2)) / (Math.pow(plRange,2));
-			double swD = (Math.pow((a.getSW() - b.getSW()), 2)) / (Math.pow(swRange,2));
-			double slD = (Math.pow((a.getSL() - b.getSL()), 2)) / (Math.pow(slRange,2));
-			double dsqrd = pwD + plD + swD + slD;
-			double dist = Math.sqrt(dsqrd);
-			return dist;
-		}
-		return 0;
+	public double getDistance(Instance a, Instance b) {
+
+		double pwD = (Math.pow((a.getPW() - b.getPW()), 2)) / (Math.pow(pwRange, 2));
+		double plD = (Math.pow((a.getPL() - b.getPL()), 2)) / (Math.pow(plRange, 2));
+		double swD = (Math.pow((a.getSW() - b.getSW()), 2)) / (Math.pow(swRange, 2));
+		double slD = (Math.pow((a.getSL() - b.getSL()), 2)) / (Math.pow(slRange, 2));
+		double dsqrd = pwD + plD + swD + slD;
+		double dist = Math.sqrt(dsqrd);
+		return dist;
+
 	}
 
-	public  boolean setRange() {
+	public boolean setRange() {
 
-		double slMax = 0;
-		double swMax = 0;
-		double plMax = 0;
-		double pwMax = 0;
-		double slMin = 99 ^ 9;
-		double swMin = 99 ^ 9;
-		double plMin = 99 ^ 9;
-		double pwMin = 99 ^ 9;
+		slMax = 0;
+		swMax = 0;
+		plMax = 0;
+		pwMax = 0;
+		slMin = 99 ^ 9;
+		swMin = 99 ^ 9;
+		plMin = 99 ^ 9;
+		pwMin = 99 ^ 9;
 		if (!trainList.isEmpty()) {
 			for (Instance i : trainList) {
 				if (i.getPL() < plMin)
@@ -172,14 +191,175 @@ public class KNN {
 		} else
 			return false;
 	}
-	
-	public void test(){
+
+	public void test() {
 		double pos = 0;
-		for(Instance i : testList){
-			if(i.getName().equals(i.getGuess())) pos++;
+		for (Instance i : testList) {
+			if (i.getName().equals(i.getGuess()))
+				pos++;
 		}
 		System.out.println("Num of correct " + pos);
-		System.out.println("percentage of correct " + pos/75);
+		System.out.println("percentage of correct " + pos / 75);
+	}
+
+	/**
+	 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	 * 
+	 * ----------------------------------KMEAN-CLUSTER METHOD
+	 * FUNCTIONS-------------------------------------------
+	 *
+	 * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	 */
+
+	public void KMean() {
+		// generate initial centers
+		Instance[] c1Array = new Instance[3];
+		for (int i = 0; i < 3; i++) {
+			Random r = new Random();
+			double pw = pwMin + (pwMax - pwMin) * r.nextDouble();
+			double pl = plMin + (plMax - plMin) * r.nextDouble();
+			double sl = slMin + (slMax - slMin) * r.nextDouble();
+			double sw = swMin + (swMax - swMin) * r.nextDouble();
+			// create centroid instance
+			Instance c1 = new Instance("c1", sl, sw, pl, pw);
+			c1Array[i] = c1;
+		}
+
+		// cluster data points based on centroids
+		while (!stop) {
+			dataAssignmentPhase(c1Array);
+			c1Array = updateCentroidPhase(c1Array);
+		}
+		
+	}
+
+	public void dataAssignmentPhase(Instance[] array) {
+		for (Instance a : trainList) {
+			Comparator<Instance> comparator = new DistanceComparator();
+			PriorityQueue<Instance> queue = new PriorityQueue<Instance>(comparator);
+			for (Instance b : array) {
+				b.setDist(getDistance(a, b));
+				queue.add(b);
+			}
+			a.setCentroid(queue.poll());
+		}
+	}
+
+	public Instance[] updateCentroidPhase(Instance[] array) {
+		ArrayList<Instance> cluster1 = new ArrayList<Instance>();
+		ArrayList<Instance> cluster2 = new ArrayList<Instance>();
+		ArrayList<Instance> cluster3 = new ArrayList<Instance>();
+
+		// assign each element in train list to a cluster, based on its centroid
+		for (Instance i : trainList) {
+			if (i.getCentroid() == array[0])
+				cluster1.add(i);
+			else if (i.getCentroid() == array[1])
+				cluster2.add(i);
+			else
+				cluster3.add(i);
+		}
+		Instance[] temp = new Instance[3];
+		temp[0] = array[0];
+		temp[1] = array[1];
+		temp[2] = array[2];
+		// update the instances in the array to new centroids
+		array[0] = getClusterMean(cluster1);
+		array[1] = getClusterMean(cluster2);
+		array[2] = getClusterMean(cluster3);
+		// check if clusters have changed (STOPPING CONDITION)
+		if (array[0].equals(temp[0]) && array[1].equals(temp[1]) && array[2].equals(temp[2])) {
+			stop = true;
+			dataAssignmentPhase(array);
+			testKMean(array);
+		}
+		
+		return array;
+
+	}
+
+	public Instance getClusterMean(ArrayList<Instance> list) {
+		double pw = 0;
+		double pl = 0;
+		double sw = 0;
+		double sl = 0;
+
+		for (Instance i : list) {
+			pw += i.getPW();
+			pl += i.getPL();
+			sw += i.getSW();
+			sl += i.getSL();
+		}
+
+		pw = pw / list.size();
+		pl = pl / list.size();
+		sw = sw / list.size();
+		sl = sl / list.size();
+		
+
+		// create updated centroid based on cluster mean
+		Instance c1 = new Instance("c1", sl, sw, pl, pw);
+		return c1;
+	}
+	
+	public void testKMean(Instance[] array){
+		ArrayList<Instance> cluster1 = new ArrayList<Instance>();
+		ArrayList<Instance> cluster2 = new ArrayList<Instance>();
+		ArrayList<Instance> cluster3 = new ArrayList<Instance>();
+
+		// assign each element in train list to a cluster, based on its centroid
+		for (Instance i : trainList) {
+			if (i.getCentroid() == array[0])
+				cluster1.add(i);
+			else if (i.getCentroid() == array[1])
+				cluster2.add(i);
+			else
+				cluster3.add(i);
+		}
+		setKMeanGuess(cluster1);
+		setKMeanGuess(cluster2);
+		setKMeanGuess(cluster3);
+		
+		testKMeanName();
+
+	}
+	
+	public void setKMeanGuess(ArrayList<Instance> cluster){
+		String s = "Iris-setosa";
+		String vi = "Iris-virginica";
+		String ve = "Iris-versicolor";
+		int numS = 0;
+		int numVi = 0;
+		int numVe = 0;
+		
+		String guess = "";
+		
+		for(Instance i : cluster){
+			if(i.getName().equals(s)) numS++;
+			else if(i.getName().equals(vi)) numVi++;
+			else numVe++;
+		}
+		
+		double max = Math.max(numS, Math.max(numVi, numVe));
+		
+		if(max == numS) guess = s;
+		else if (max == numVi) guess = vi;
+		else guess = ve;
+		
+		for(Instance i : cluster){
+			i.setGuess(guess);
+		}
+
+	}
+	
+	public void testKMeanName() {
+		double pos = 0;
+		for (Instance i : trainList) {
+			if (i.getName().equals(i.getGuess()))
+				pos++;
+		}
+		System.out.println("Num of correct " + pos);
+		System.out.println("percentage of correct " + pos / 75);
 	}
 
 }
