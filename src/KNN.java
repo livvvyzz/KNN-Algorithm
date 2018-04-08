@@ -210,12 +210,16 @@ public class KNN {
 	 */
 	public void test(ArrayList<Instance> list) {
 		double pos = 0;
+		int index = 0;
 		for (Instance i : list) {
+			String s = "Instance " + index + ": Classified as: " + i.getGuess() + ", Actual: " + i.getName();
 			if (i.getName().equals(i.getGuess()))
 				pos++;
+			System.out.println(s);
+			index++;
 		}
 		System.out.println("Num of correct " + pos);
-		System.out.println("percentage of correct " + pos / 75);
+		System.out.println("Classification Accuracy " + pos / 75);
 	}
 
 	/**
