@@ -27,9 +27,9 @@ public class KNN {
 	private double plMin;
 	private double pwMin;
 
-	public KNN() {
-		File train = new File("iris-training.txt");
-		File test = new File("iris-test.txt");
+	public KNN(String ftrain, String ftest) {
+		File train = new File(ftrain);
+		File test = new File(ftest);
 		trainList = makeList(train);
 		testList = makeList(test);
 		setRange();

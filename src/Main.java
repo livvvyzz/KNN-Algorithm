@@ -3,7 +3,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		KNN knn = new KNN();
+		KNN knn = new KNN(args[0], args[1]);
 
 	}
 
